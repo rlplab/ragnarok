@@ -8,16 +8,28 @@ from pathlib import Path
 import benchmarks
 import experiment
 
-# import planners
 import report
 import tracks
+import project
+
+USER = project.User(
+    scp_login="x_pauho@tetralith.nsc.liu.se",
+    project_handle="snic2022-5-341",
+    remote_repo="/proj/dfsplan/users/x_pauho/",
+    email="paul.hoft@liu.se",
+)
 
 Planner = namedtuple("Planner", ["shortname", "image_path"])
+
+REPO = project.get_repo_base()
+SCP_LOGIN = USER.scp_login
+REMOTE_REPOS_DIR = USER.remote_repo
 
 TRACK = tracks.OPT
 TIME_LIMIT = 1800  # s
 MEMORY_LIMIT = 8192  # MB
 NUM_RESERVED_CORES = 3
+BENCHMARKS_DIR = REPO / "benchmarks" / "pddl"
 
 if experiment.running_on_cluster():
     TESTRUN = False
@@ -32,9 +44,8 @@ else:
     ENVIRONMENT = LocalEnvironment(processes=2)
 
 PLANNERS = [
-    Planner(
-        "ragnarok", Path("/home/paul/ipc2023/post-ipc-evaluation/planners/Ragnarok")
-    )
+    Planner(name, REPO / name)
+    for name in ["Decstar", "Powerlifted", "Ragnarok", "Symk"]
 ]
 
 exp = experiment.IPCExperiment(
@@ -44,7 +55,7 @@ exp = experiment.IPCExperiment(
     environment=ENVIRONMENT,
 )
 exp.add_planners(PLANNERS)
-exp.add_suite(*benchmarks.get_benchmark_suite(TRACK, TESTRUN))
+exp.add_suite(BENCHMARKS_DIR, benchmarks.get_benchmark_suite())
 
 exp.add_report(
     report.IPCReport(attributes=report.IPCReport.DEFAULT_ATTRIBUTES),

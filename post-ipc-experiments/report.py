@@ -9,8 +9,7 @@ from lab import reports
 import logging
 
 import benchmarks
-
-# import tracks
+import tracks
 
 
 def add_score(run):
