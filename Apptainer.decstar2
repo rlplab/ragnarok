@@ -1,0 +1,132 @@
+# Stage 1: Compile the planner
+Bootstrap: docker
+From: ubuntu:22.04
+Stage: build
+
+%files
+    planners /planners
+    $IPC_THIRD_PARTY/cplex_studio2211.linux_x86_64.bin cplex.bin
+    Osi-0.108.6.tgz
+
+%post
+    ## Install all dependencies.
+    apt-get update
+    apt-get -y install --no-install-recommends cmake g++ make pypy3 autoconf automake default-jre-headless zlib1g-dev autotools-dev bison ca-certificates flex gdb libboost-dev libboost-program-options-dev
+
+    ## Clear local build directories.
+    rm -rf /planners/*/builds
+
+    ## Build CPLEX
+    chmod +x ./cplex.bin
+    ./cplex.bin -DLICENSE_ACCEPTED=TRUE -i silent
+
+    export DOWNWARD_CPLEX_ROOT=/opt/ibm/ILOG/CPLEX_Studio2211/cplex/
+    export DOWNWARD_CPLEX_CONCERT64=/opt/ibm/ILOG/CPLEX_Studio2211/concert/
+
+    ##Build OSI
+    tar xvzf Osi-0.108.6.tgz
+    cd Osi-0.108.6
+    export DOWNWARD_COIN_ROOT=/opt/coin/
+
+    ./configure CC="gcc"  CFLAGS="-pthread -Wno-long-long" \
+            CXX="g++" CXXFLAGS="-pthread -Wno-long-long" \
+            LDFLAGS="-L$DOWNWARD_CPLEX_ROOT/lib/x86-64_linux/static_pic" \
+            --without-lapack --enable-static=yes \
+            --prefix="$DOWNWARD_COIN_ROOT" \
+            --disable-bzlib  \
+            --with-cplex-incdir=$DOWNWARD_CPLEX_ROOT/include/ilcplex \
+            --with-cplex-lib="-lcplex -lm -ldl"
+
+    make
+    make install
+
+    cd ..
+
+    ## Build bliss
+    cd planners/decstar/third-party/bliss-0.73
+    make clean
+    make
+    make lib
+    export PATH="/planners/decstar/third-party/bliss-0.73:$PATH"
+    cd ../../../..
+
+    ## Build planners.
+    for planner in decstar scorpion symk powerlifted; do
+        cd /planners/${planner}
+        pypy3 build.py
+    done
+
+    ## Strip binaries (shell globs don't work).
+    strip --strip-all /planners/decstar/builds/release64/bin/downward
+    strip --strip-all /planners/scorpion/builds/release/bin/downward /planners/scorpion/builds/release/bin/preprocess-h2
+    strip --strip-all /planners/symk/builds/release/bin/downward
+    strip --strip-all /planners/powerlifted/builds/release/search/search
+
+# Stage 2: Run the planner
+Bootstrap: docker
+From: ubuntu:22.04
+Stage: run
+
+%files
+    plan.py
+    driver
+
+%files from build
+    /opt/ibm/ILOG/CPLEX_Studio2211/cplex/
+    /opt/ibm/ILOG/CPLEX_Studio2211/concert/
+    /opt/coin/
+
+    /planners/decstar/builds/release64/bin/downward /planners/decstar/builds/release/bin/downward
+    /planners/decstar/third-party/bliss-0.73/
+
+    /planners/scorpion/driver
+    /planners/scorpion/fast-downward.py
+    /planners/scorpion/builds/release/bin
+    # /driver/run_components.py points to the src directory.
+    /planners/scorpion/src/translate
+
+    /planners/symk/builds/release/bin/downward
+
+    /planners/powerlifted/driver
+    /planners/powerlifted/powerlifted.py
+    /planners/powerlifted/builds/release/search
+    /planners/powerlifted/builds/release/translator
+
+%post
+    apt-get update
+    apt-get -y install --no-install-recommends pypy3 libboost-dev libboost-program-options-dev
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    DOMAINFILE="$1"
+    PROBLEMFILE="$2"
+    PLANFILE="$3"
+
+    # Limit memory to 7.5 GiB to enable switching away from components that run out of memory.
+    # Go even further down to 6G because of the apptainer overhead.
+    pypy3 /plan.py \
+        --overall-memory-limit 6G \
+        --overall-time-limit 30m \
+        --translate-time-limit 15m \
+        --transform-task /planners/scorpion/builds/release/bin/preprocess-h2 \
+        --transform-task-options h2_time_limit,180 \
+        --alias seq-opt-decstar-2 \
+        --plan-file "$PLANFILE" \
+        "$DOMAINFILE" "$PROBLEMFILE"
+
+%labels
+Name        Ragnarok
+Description Sequential portfolio of optimal planners developed at Linköping University
+Authors     Dominik Drexler <dominik.drexler@liu.se>, Daniel Gnad <daniel.gnad@liu.se>, Paul Höft <paul.hoft@liu.se>, Jendrik Seipp <jendrik.seipp@liu.se>, David Speck <david.speck@liu.se>, Simon Ståhlberg <simon.stahlberg@liu.se>
+License     GPL 3
+Tracks      optimal
+SupportsDerivedPredicates                       yes
+SupportsUniversallyQuantifiedPreconditions      yes
+SupportsExistentiallyQuantifiedPreconditions    yes
+SupportsUniversallyQuantifiedEffects            yes
+SupportsNegativePreconditions                   yes
+SupportsEqualityPreconditions                   yes
+SupportsInequalityPreconditions                 yes
+SupportsConditionalEffects                      yes
+SupportsImplyPreconditions                      yes
