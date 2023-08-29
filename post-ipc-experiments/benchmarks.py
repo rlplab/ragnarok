@@ -22,6 +22,17 @@ def get_benchmark_suite():
     ]
 
 
+def get_test_benchmark_suite():
+    return [
+        "folding:p01.pddl",
+        "labyrinth:p01.pddl",
+        "recharging-robots:p01.pddl",
+        "ricochet-robots:p01.pddl",
+        "rubiks-cube:p01.pddl",
+        "slitherlink:p01.pddl",
+    ]
+
+
 def get_ipc2018_suite(track):
     return [
         "agricola",

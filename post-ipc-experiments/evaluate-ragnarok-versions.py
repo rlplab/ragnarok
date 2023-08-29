@@ -33,19 +33,20 @@ BENCHMARKS_DIR = REPO / "benchmarks" / "pddl"
 
 if experiment.running_on_cluster():
     TESTRUN = False
-    ENVIRONMENT = BaselSlurmEnvironment(
-        partition="infai_3",
-        email="florian.pommerening@unibas.ch",
-        memory_per_cpu=f"{int(NUM_RESERVED_CORES*3.5*1024)}M",  # We reserve enough memory such that each task blocks 10 nodes (actual memory limit is set internally)
-        export=["PATH"],
+    ENVIRONMENT = TetralithEnvironment(
+        email="paul.hoft@liu.se",
+        extra_options="#SBATCH -A snic2022-22-1074",
+        memory_per_cpu="9G",
     )
+    SUITE = benchmarks.get_benchmark_suite()
 else:
     TESTRUN = True
     ENVIRONMENT = LocalEnvironment(processes=2)
+    SUITE = benchmarks.get_test_benchmark_suite()
 
 PLANNERS = [
     Planner(name, REPO / name)
-    for name in ["Decstar", "Powerlifted", "Ragnarok", "Symk"]
+    for name in ["decstar1", "decstar2", "powerlifted", "ragnarok", "symk"]
 ]
 
 exp = experiment.IPCExperiment(
@@ -55,7 +56,7 @@ exp = experiment.IPCExperiment(
     environment=ENVIRONMENT,
 )
 exp.add_planners(PLANNERS)
-exp.add_suite(BENCHMARKS_DIR, benchmarks.get_benchmark_suite())
+exp.add_suite(BENCHMARKS_DIR, SUITE)
 
 exp.add_report(
     report.IPCReport(attributes=report.IPCReport.DEFAULT_ATTRIBUTES),

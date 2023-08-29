@@ -19,4 +19,4 @@ if [ -f $PLAN ]; then
     exit 2
 fi
 
-runsolver -C $TIME_LIMIT -V $MEMORY_LIMIT -w watch.log -v values.log singularity run -C -H $PWD $IMAGE $DOMAIN $PROBLEM $PLAN
+runsolver -C $TIME_LIMIT -V $MEMORY_LIMIT -w watch.log -v values.log apptainer run -C -H $PWD $IMAGE $DOMAIN $PROBLEM $PLAN
