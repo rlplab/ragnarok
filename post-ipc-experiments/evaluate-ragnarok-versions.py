@@ -46,7 +46,7 @@ else:
 
 PLANNERS = [
     Planner(name, REPO / name)
-    for name in ["decstar1", "decstar2", "powerlifted", "ragnarok", "symk"]
+    for name in ["decstar1", "decstar2", "powerlifted", "ragnarok", "symk", "scorpion"]
 ]
 
 exp = experiment.IPCExperiment(
