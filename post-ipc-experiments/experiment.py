@@ -59,7 +59,9 @@ class IPCExperiment(Experiment):
         self.add_step("start", self.start_runs)
         self.add_fetcher(name="fetch")
         self.add_parser(SCRIPT_DIR / "ipc-parser.py")
+        self.add_parser(SCRIPT_DIR / "ragnarok_solved_component_parser.py")
         self.add_resource("run_singularity", SCRIPT_DIR / "run-singularity.sh")
+        self.add_resource("", "common_parser.py")
 
     def _get_tasks(self):
         tasks = []

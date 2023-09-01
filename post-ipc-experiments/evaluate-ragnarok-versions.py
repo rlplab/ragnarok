@@ -11,6 +11,7 @@ import experiment
 import report
 import tracks
 import project
+import ragnarok_solved_component_parser
 
 USER = project.User(
     scp_login="x_pauho@tetralith.nsc.liu.se",
@@ -26,9 +27,8 @@ SCP_LOGIN = USER.scp_login
 REMOTE_REPOS_DIR = USER.remote_repo
 
 TRACK = tracks.OPT
-TIME_LIMIT = 1800  # s
+
 MEMORY_LIMIT = 8192  # MB
-NUM_RESERVED_CORES = 3
 BENCHMARKS_DIR = REPO / "benchmarks" / "pddl"
 
 if experiment.running_on_cluster():
@@ -39,10 +39,12 @@ if experiment.running_on_cluster():
         memory_per_cpu="9G",
     )
     SUITE = benchmarks.get_benchmark_suite()
+    TIME_LIMIT = 1800  # s
 else:
     TESTRUN = True
-    ENVIRONMENT = LocalEnvironment(processes=2)
+    ENVIRONMENT = LocalEnvironment(processes=5)
     SUITE = benchmarks.get_test_benchmark_suite()
+    TIME_LIMIT = 180  # s
 
 PLANNERS = [
     Planner(name, REPO / name)
@@ -59,7 +61,10 @@ exp.add_planners(PLANNERS)
 exp.add_suite(BENCHMARKS_DIR, SUITE)
 
 exp.add_report(
-    report.IPCReport(attributes=report.IPCReport.DEFAULT_ATTRIBUTES),
+    report.IPCReport(
+        attributes=report.IPCReport.DEFAULT_ATTRIBUTES,
+        filter=[ragnarok_solved_component_parser.args_to_component],
+    ),
     outfile=f"{exp.name}.html",
 )
 for planner in PLANNERS:

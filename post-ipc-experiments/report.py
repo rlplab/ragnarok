@@ -4,6 +4,7 @@ from collections import defaultdict, Counter
 import math
 
 from downward.reports.absolute import AbsoluteReport
+from downward.reports import Attribute
 from lab import tools
 from lab import reports
 import logging
@@ -63,6 +64,12 @@ class IPCReport(AbsoluteReport):
         "total_cpu_time",
         "total_virtual_memory",
         "total_wall_clock_time",
+        "args",
+        "successful_planner",
+        Attribute("scorpion", absolute=True, min_wins=False),
+        Attribute("decstar", absolute=True, min_wins=False),
+        Attribute("symk", absolute=True, min_wins=False),
+        Attribute("powerlifted", absolute=True, min_wins=False),
     ]
 
     def __init__(self, **kwargs):

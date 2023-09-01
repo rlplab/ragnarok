@@ -27,6 +27,7 @@ def get_test_benchmark_suite():
         "folding:p01.pddl",
         "folding-norm:p01.pddl",
         "labyrinth:p01.pddl",
+        "quantum-layout:p01.pddl",
         "recharging-robots:p01.pddl",
         "recharging-robots-norm:p01.pddl",
         "ricochet-robots:p01.pddl",
