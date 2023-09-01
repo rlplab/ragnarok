@@ -38,14 +38,13 @@ def str_to_list(lst: str):
 
 
 def args_to_component(run):
-    if run["error"] == "solved":
+    if "error" in run and run["error"] == "solved":
         run["scorpion"] = 0
         run["decstar"] = 0
         run["symk"] = 0
         run["powerlifted"] = 0
         if "args" in run:
             argslist = str_to_list(run["args"])[0:3]
-            print(argslist)
             if argslist in SCORPION:
                 run["successful_planner"] = "scorpion"
                 run["scorpion"] = 1
