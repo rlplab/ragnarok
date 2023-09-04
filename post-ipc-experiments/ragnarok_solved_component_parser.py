@@ -15,17 +15,19 @@ SCORPION = [
     ],
 ]
 
-DECSTAR = [
+DECSTAR1 = [
     [
         "/planners/decstar/builds/release/bin/downward",
         "--decoupling",
         "lp_general(factoring_time_limit=30, memory_limit=7000, add_cg_sccs=true, strategy=mm_approx, min_flexibility=0.8)",
-    ],
+    ]
+]
+DECSTAR2 = [
     [
         "/planners/decstar/builds/release/bin/downward",
         "--search",
         "astar(lmcut, pruning=stubborn_sets_ec(min_pruning_ratio=0.25), symmetry=symmetry_state_pruning)",
-    ],
+    ]
 ]
 
 SYMK = [
@@ -38,19 +40,23 @@ def str_to_list(lst: str):
 
 
 def args_to_component(run):
+    run["scorpion"] = 0
+    run["decstar1"] = 0
+    run["decstar2"] = 0
+    run["symk"] = 0
+    run["powerlifted"] = 0
     if "error" in run and run["error"] == "solved":
-        run["scorpion"] = 0
-        run["decstar"] = 0
-        run["symk"] = 0
-        run["powerlifted"] = 0
         if "args" in run:
             argslist = str_to_list(run["args"])[0:3]
             if argslist in SCORPION:
                 run["successful_planner"] = "scorpion"
                 run["scorpion"] = 1
-            elif argslist in DECSTAR:
-                run["successful_planner"] = "decstar"
-                run["decstar"] = 1
+            elif argslist in DECSTAR1:
+                run["successful_planner"] = "decstar1"
+                run["decstar1"] = 1
+            elif argslist in DECSTAR2:
+                run["successful_planner"] = "decstar2"
+                run["decstar2"] = 1
             elif argslist in SYMK:
                 run["successful_planner"] = "symk"
                 run["symk"] = 1

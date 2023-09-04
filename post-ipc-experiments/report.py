@@ -67,7 +67,8 @@ class IPCReport(AbsoluteReport):
         "args",
         "successful_planner",
         Attribute("scorpion", absolute=True, min_wins=False),
-        Attribute("decstar", absolute=True, min_wins=False),
+        Attribute("decstar1", absolute=True, min_wins=False),
+        Attribute("decstar2", absolute=True, min_wins=False),
         Attribute("symk", absolute=True, min_wins=False),
         Attribute("powerlifted", absolute=True, min_wins=False),
     ]
